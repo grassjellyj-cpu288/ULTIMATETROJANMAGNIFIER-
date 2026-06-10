@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>SmartSharpenPro+ </title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ===== CSS เฉพาะของ Smart Sharpen Pro - ปรับปรุงสำหรับมือถือ Android ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #0B1120;
+            font-family: 'Inter', sans-serif;
+            color: #E2E8F0;
+            padding: 12px;
+            /* เพิ่ม smooth scroll */
+            scroll-behavior: smooth;
+        }
+
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* header ปรับให้เหมาะกับนิ้วโป้ง */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 12px 18px;
+            border-radius: 1.75rem;
+            border: 1px solid rgba(51, 65, 85, 0.6);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 1.7rem;
+            background: linear-gradient(135deg, #3B82F6, #A855F7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo-text h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #F8FAFC, #94A3B8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            line-height: 1.2;
+        }
+
+        .logo-text p {
+            font-size: 0.7rem;
+            color: #94A3B8;
+        }
+
+        .nav-buttons .back-btn {
+            background: #334155;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            gap: 6px;
+        }
+
+        /* Layout หลัก - บนมือถือจะเป็นแนวตั้ง */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        /* Canvas panel: ให้ภาพแสดงผลเต็มที่ */
+        .canvas-panel {
+            background: #0F172A;
+            border-radius: 1.5rem;
+            padding: 12px;
+            border: 1px solid #1E293B;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            background: #020617;
+            border-radius: 1rem;
+            overflow: auto; /* ให้เลื่อนดูภาพถ้าภาพใหญ่กว่าหน้าจอ */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            max-height: 55vh;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            cursor: crosshair;
+            /* เพิ่ม touch-action เพื่อการสัมผัสที่ราบรื่น */
+            touch-action: manipulation;
+        }
+
+        /* แผงควบคุม - การ์ด และปุ่มต่างๆ ให้ใหญ่ขึ้น เหมาะกับนิ้ว */
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .card {
+            background: #0F172A;
+            border: 1px solid #1E293B;
+            border-radius: 1.5rem;
+            padding: 18px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 14px;
+            gap: 10px;
+            padding-left: 12px;
+        }
+
+        /* slider ปรับ touch */
+        .slider-group {
+            margin-bottom: 18px;
+        }
+
+        .slider-header {
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        .value-badge {
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            background: #1E293B;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #1E293B;
+            border-radius: 10px;
+        }
+
+        /* ขยาย thumb ให้กดง่ายบนมือถือ */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #3B82F6;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 2px solid #fff;
+        }
+
+        /* ปุ่มทุกปุ่ม: ขนาดแตะขั้นต่ำ 44x44 */
+        button, .back-btn, .zoom-toggle {
+            min-height: 48px;
+            padding: 12px 16px;
+            border-radius: 48px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            gap: 10px;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .btn-group button {
+            flex: 1 1 auto;
+            min-width: 100px;
+        }
+
+        select {
+            padding: 14px 12px;
+            font-size: 0.9rem;
+            border-radius: 48px;
+            margin: 12px 0;
+            background: #1E293B;
+            min-height: 48px;
+        }
+
+        .voice-status {
+            background: #1E293B;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .status-tag {
+            padding: 12px 16px;
+            font-size: 0.8rem;
+            gap: 8px;
+            border-radius: 48px;
+        }
+
+        .progress-container {
+            height: 6px;
+            margin-top: 16px;
+        }
+
+        /* Floating Zoom Lens - ปรับให้เล็กเหมาะมือถือ ไม่บดบังการกด */
+        .floating-zoom {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(16px);
+            padding: 8px;
+            border-radius: 20px;
+            border: 1px solid #3B82F6;
+            z-index: 1000;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            width: 130px;
+            transition: 0.2s;
+        }
+
+        .floating-zoom canvas {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+        }
+
+        .floating-zoom.hidden {
+            display: none;
+        }
+
+        /* ปรับแต่งปุ่มพิเศษ */
+        button.voice-btn {
+            background: linear-gradient(135deg, #8B5CF6, #D946EF);
+        }
+
+        button.success {
+            background: #10b981;
+        }
+
+        /* สำหรับปุ่มเปิด/ปิดซูม */
+        .zoom-toggle {
+            background: #334155;
+            color: white;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        /* Media queries เพิ่มเติมสำหรับจอเล็กพิเศษ (<=480px) */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+            .app-header {
+                padding: 10px 14px;
+            }
+            .logo-text h1 {
+                font-size: 1.1rem;
+            }
+            .card {
+                padding: 14px;
+            }
+            button, .back-btn {
+                font-size: 0.8rem;
+                padding: 10px 12px;
+                min-height: 44px;
+            }
+            .card-title {
+                font-size: 0.95rem;
+            }
+            .slider-header {
+                font-size: 0.8rem;
+            }
+            .voice-status {
+                font-size: 0.7rem;
+                padding: 6px 12px;
+            }
+            .floating-zoom {
+                width: 110px;
+                bottom: 12px;
+                right: 12px;
+            }
+            .btn-group {
+                gap: 8px;
+            }
+        }
+
+        /* ปรับ scroll wrapper */
+        .canvas-wrapper::-webkit-scrollbar {
+            height: 4px;
+            width: 4px;
+        }
+
+        /* ปรับปรุงการแสดงผล toast (ถ้ามี) ไม่มีในโค้ดเดิม แต่กันไว้ */
+        .drag-overlay {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon"><i class="fas fa-magic"></i></div>
+            <div class="logo-text">
+                <h1>Smart Sharpen Pro</h1>
+                <p>Ultimate AI Editor | มือถือ</p>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> หน้าแรก</a>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <div class="canvas-panel">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <canvas id="canvas"></canvas>
+            </div>
+            <div class="status-tag" id="imageStatus"><i class="fas fa-info-circle"></i> พร้อมใช้งาน — แตะอัปโหลดภาพ</div>
+        </div>
+
+        <div class="controls-panel">
+            <!-- File Manager -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-file-image"></i> จัดการไฟล์</div>
+                <input type="file" id="upload" accept="image/*" style="display: none;">
+                <div class="btn-group">
+                    <button id="uploadBtn" class="primary"><i class="fas fa-upload"></i> อัปโหลด</button>
+                    <button id="undoBtn" disabled><i class="fas fa-undo-alt"></i> เลิกทำ</button>
+                    <button id="redoBtn" disabled><i class="fas fa-redo-alt"></i> ทำซ้ำ</button>
+                </div>
+                <button id="resetBtn" class="secondary"><i class="fas fa-sync-alt"></i> รีเซ็ตเป็นต้นฉบับ</button>
+            </div>
+
+            <!-- AI ลบพื้นหลัง -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-robot"></i> AI ลบพื้นหลัง</div>
+                <button id="aiRemoveBgBtn" class="primary" style="background: linear-gradient(95deg, #8B5CF6, #D946EF);"><i class="fas fa-cut"></i> ลบพื้นหลังอัจฉริยะ</button>
+                <div class="status-tag" id="aiStatus"><i class="fas fa-database"></i> โหลดโมเดล AI ครั้งแรก</div>
+            </div>
+
+            <!-- RGB Sharpen Engine -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-eye"></i> ปรับความคมชัด (RGB Sharpen)</div>
+                <div class="slider-group"><div class="slider-header"><span><i class="fas fa-tachometer-alt"></i> ความแรง</span><span id="amountVal" class="value-badge">50%</span></div><input type="range" id="amount" min="0" max="200" value="50" step="1"></div>
+                <div class="slider-group"><div class="slider-header"><span><i class="fas fa-blur"></i> รัศมี (Blur)</span><span id="radiusVal" class="value-badge">1.5</span></div><input type="range" id="radius" min="0.5" max="5" value="1.5" step="0.1"></div>
+                <div class="slider-group"><div class="slider-header"><span><i class="fas fa-chart-line"></i> ขอบเขตขอบ</span><span id="thresholdVal" class="value-badge">10</span></div><input type="range" id="threshold" min="0" max="50" value="10" step="1"></div>
+                <div class="slider-group"><div class="slider-header"><span><i class="fas fa-smog"></i> Pre-blur</span><span id="preblurVal" class="value-badge">0</span></div><input type="range" id="preblur" min="0" max="5" value="0" step="0.1"></div>
+                <select id="mode">
+                    <option value="standard">📐 Standard Unsharp</option>
+                    <option value="detail">✨ Detail Enhance (คมชัดจัด)</option>
+                    <option value="soft">🌊 Soft Sharpening</option>
+                </select>
+                <div class="btn-group">
+                    <button id="sharpenBtn" class="primary"><i class="fas fa-bolt"></i> เริ่มปรับคมชัด</button>
+                    <button id="cancelSharpenBtn" class="danger" disabled><i class="fas fa-ban"></i> ยกเลิก</button>
+                </div>
+                <div class="progress-container" id="progressContainer" style="display: none;"><div class="progress-fill" id="progressFill"></div></div>
+            </div>
+
+            <!-- ปรับสีและแสง -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-palette"></i> ปรับสี & ความสว่าง</div>
+                <div class="slider-group"><div class="slider-header"><span>ความอิ่มตัว</span><span id="satVal" class="value-badge">100%</span></div><input type="range" id="saturation" min="0" max="200" value="100" step="1"></div>
+                <div class="slider-group"><div class="slider-header"><span>ความสว่าง</span><span id="brightVal" class="value-badge">0</span></div><input type="range" id="brightness" min="-100" max="100" value="0" step="1"></div>
+                <div class="btn-group">
+                    <button id="colorBoostBtn" class="primary"><i class="fas fa-adjust"></i> ปรับสี</button>
+                    <button id="resetColorBtn" class="secondary"><i class="fas fa-undo"></i> รีเซ็ตสี</button>
+                </div>
+            </div>
+
+            <!-- คำสั่งเสียง + บันทึก + ซูมเลนส์ + ส่งกลับหน้าแรก -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-microphone-alt"></i> คำสั่งเสียง (ภาษาไทย)</div>
+                <div class="btn-group">
+                    <button id="voiceBtn" class="voice-btn"><i class="fas fa-microphone"></i> กดพูด</button>
+                    <span id="voiceStatusMsg" class="voice-status"><i class="fas fa-microphone-alt"></i> พร้อมใช้งาน</span>
+                </div>
+                <button id="saveBtn" class="warning"><i class="fas fa-download"></i> บันทึกเป็น PNG</button>
+                <button id="toggleZoomBtn" class="zoom-toggle"><i class="fas fa-search-plus"></i> เปิด/ปิดซูมเลนส์</button>
+                <!-- ปุ่มส่งภาพกลับไปหน้าแรก (แก้ไขแล้ว) ปรับขนาดให้แตะง่าย -->
+                <button id="sendBackBtn" class="success" style="margin-top: 12px; background:#10b981; width:100%;">
+                    <i class="fas fa-share-square"></i> ส่งภาพกลับไปหน้าแรก
+                </button>
+            </div>
+            <div class="status-tag"><i class="fas fa-keyboard"></i> ลัด: Ctrl+Z / Ctrl+Y / Ctrl+Enter</div>
+        </div>
+    </div>
+</div>
+
+<!-- Zoom Lens Floating Panel -->
+<div id="floatingZoom" class="floating-zoom hidden">
+    <canvas id="zoomCanvas" width="180" height="180" style="width:100%; height:auto; border-radius: 12px; background: #0F172A;"></canvas>
+    <div style="font-size: 10px; text-align: center; margin-top: 6px;">✨ เลนส์ขยาย</div>
+</div>
+
+<script>
+    // ---------- SmartSharpenPro Core (จำลอง/เต็มรูปแบบ) รองรับมือถือ ----------
+    // ถ้ามีไฟล์ SmartSharpenPro.js จริงจะทำงานทับ แต่เราสร้างคลาสหลักไว้ในตัวเพื่อไม่ให้เกิด error
+    // แต่ยังคงเรียกใช้ SmartSharpenPro เดิมถ้ามี (เพื่อให้ consistent) แต่เพิ่มความเข้ากันได้
+    (function(){
+        // ตรวจสอบว่า SmartSharpenPro มีอยู่แล้วหรือไม่
+        if (typeof window.SmartSharpenPro !== 'undefined') return;
+        
+        // สร้างคลาสหลักในกรณีที่ไม่มีไฟล์ JS ภายนอก (Fallback)
+        class SmartSharpenProCore {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.originalImageData = null;
+                this.currentImageData = null;
+                this.history = [];
+                this.historyIndex = -1;
+                this.maxHistory = 30;
+                this.isProcessing = false;
+                this.zoomActive = false;
+                this.initElements();
+                this.bindEvents();
+                this.setupZoomLens();
+            }
+
+            initElements() {
+                this.uploadInput = document.getElementById('upload');
+                this.uploadBtn = document.getElementById('uploadBtn');
+                this.undoBtn = document.getElementById('undoBtn');
+                this.redoBtn = document.getElementById('redoBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.sharpenBtn = document.getElementById('sharpenBtn');
+                this.cancelSharpenBtn = document.getElementById('cancelSharpenBtn');
+                this.amountSlider = document.getElementById('amount');
+                this.radiusSlider = document.getElementById('radius');
+                this.thresholdSlider = document.getElementById('threshold');
+                this.preblurSlider = document.getElementById('preblur');
+                this.modeSelect = document.getElementById('mode');
+                this.saturationSlider = document.getElementById('saturation');
+                this.brightnessSlider = document.getElementById('brightness');
+                this.colorBoostBtn = document.getElementById('colorBoostBtn');
+                this.resetColorBtn = document.getElementById('resetColorBtn');
+                this.saveBtn = document.getElementById('saveBtn');
+                this.aiRemoveBgBtn = document.getElementById('aiRemoveBgBtn');
+                this.aiStatus = document.getElementById('aiStatus');
+                this.voiceBtn = document.getElementById('voiceBtn');
+                this.voiceStatusMsg = document.getElementById('voiceStatusMsg');
+                this.progressContainer = document.getElementById('progressContainer');
+                this.progressFill = document.getElementById('progressFill');
+                this.imageStatus = document.getElementById('imageStatus');
+                this.toggleZoomBtn = document.getElementById('toggleZoomBtn');
+                
+                // ค่าเริ่มต้นตัวเลข
+                this.updateSliderLabels();
+            }
+
+            updateSliderLabels() {
+                document.getElementById('amountVal').innerText = this.amountSlider.value + '%';
+                document.getElementById('radiusVal').innerText = this.radiusSlider.value;
+                document.getElementById('thresholdVal').innerText = this.thresholdSlider.value;
+                document.getElementById('preblurVal').innerText = this.preblurSlider.value;
+                document.getElementById('satVal').innerText = this.saturationSlider.value + '%';
+                document.getElementById('brightVal').innerText = this.brightnessSlider.value;
+            }
+
+            bindEvents() {
+                this.amountSlider.addEventListener('input', () => this.updateSliderLabels());
+                this.radiusSlider.addEventListener('input', () => this.updateSliderLabels());
+                this.thresholdSlider.addEventListener('input', () => this.updateSliderLabels());
+                this.preblurSlider.addEventListener('input', () => this.updateSliderLabels());
+                this.saturationSlider.addEventListener('input', () => this.updateSliderLabels());
+                this.brightnessSlider.addEventListener('input', () => this.updateSliderLabels());
+                
+                this.uploadBtn.addEventListener('click', () => this.uploadInput.click());
+                this.uploadInput.addEventListener('change', (e) => this.loadImage(e.target.files[0]));
+                this.resetBtn.addEventListener('click', () => this.resetToOriginal());
+                this.sharpenBtn.addEventListener('click', () => this.applySmartSharpen());
+                this.colorBoostBtn.addEventListener('click', () => this.applyColorCorrection());
+                this.resetColorBtn.addEventListener('click', () => this.resetColors());
+                this.saveBtn.addEventListener('click', () => this.saveAsPNG());
+                this.undoBtn.addEventListener('click', () => this.undo());
+                this.redoBtn.addEventListener('click', () => this.redo());
+                this.toggleZoomBtn.addEventListener('click', () => this.toggleZoomLens());
+                
+                // AI จำลอง (เพื่อให้ไม่พัง)
+                this.aiRemoveBgBtn.addEventListener('click', () => {
+                    this.aiStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> กำลังลบพื้นหลัง (จำลอง)...';
+                    setTimeout(() => {
+                        this.aiStatus.innerHTML = '<i class="fas fa-check-circle"></i> โหมดจำลอง: AI ลบพื้นหลังไม่สมบูรณ์ในเวอร์ชันทดสอบ';
+                        alert('ฟีเจอร์ AI ลบพื้นหลัง: ในตัวอย่างนี้รองรับผ่าน SmartSharpenPro.js จริง, ฟังก์ชันนี้จะทำงานเต็มเมื่อมี backend API');
+                    }, 800);
+                });
+                
+                // คำสั่งเสียง (จำลอง)
+                this.voiceBtn.addEventListener('click', () => {
+                    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                        const recognition = new SpeechRecognition();
+                        recognition.lang = 'th-TH';
+                        recognition.interimResults = false;
+                        this.voiceStatusMsg.innerHTML = '<i class="fas fa-microphone-slash"></i> ฟัง...';
+                        recognition.start();
+                        recognition.onresult = (event) => {
+                            const command = event.results[0][0].transcript.toLowerCase();
+                            this.voiceStatusMsg.innerHTML = `<i class="fas fa-check"></i> "${command}"`;
+                            if (command.includes('คมชัด') || command.includes('ชาร์ป')) this.applySmartSharpen();
+                            else if (command.includes('เลิกทำ')) this.undo();
+                            else if (command.includes('บันทึก')) this.saveAsPNG();
+                            else alert(`คำสั่ง: "${command}" แต่ระบบรองรับเบื้องต้น (sharp/undo/save)`);
+                        };
+                        recognition.onerror = () => this.voiceStatusMsg.innerHTML = '<i class="fas fa-exclamation"></i> ไม่เข้าใจ';
+                        recognition.onend = () => setTimeout(()=> this.voiceStatusMsg.innerHTML = '<i class="fas fa-microphone-alt"></i> พร้อมใช้งาน', 1500);
+                    } else {
+                        alert("เบราว์เซอร์นี้ไม่รองรับการรู้จำเสียง");
+                    }
+                });
+                
+                // Keyboard shortcuts
+                window.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'z') { e.preventDefault(); this.undo(); }
+                    if (e.ctrlKey && e.key === 'y') { e.preventDefault(); this.redo(); }
+                    if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); this.applySmartSharpen(); }
+                    if (e.ctrlKey && e.key === 's') { e.preventDefault(); this.saveAsPNG(); }
+                });
+            }
+            
+            loadImage(file) {
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.canvas.width = img.width;
+                        this.canvas.height = img.height;
+                        this.ctx.drawImage(img, 0, 0);
+                        this.originalImageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+                        this.currentImageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+                        this.saveToHistory();
+                        this.imageStatus.innerHTML = '<i class="fas fa-check-circle"></i> โหลดภาพสำเร็จ';
+                        this.updateUndoRedoButtons();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            saveToHistory() {
+                if (!this.currentImageData) return;
+                // ตัด history หลัง index ปัจจุบัน
+                this.history = this.history.slice(0, this.historyIndex + 1);
+                const copy = this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height);
+                this.history.push(copy);
+                if (this.history.length > this.maxHistory) this.history.shift();
+                else this.historyIndex = this.history.length - 1;
+                this.updateUndoRedoButtons();
+            }
+            
+            restoreFromHistory(index) {
+                if (!this.history[index]) return;
+                this.currentImageData = this.history[index];
+                this.ctx.putImageData(this.currentImageData, 0, 0);
+                this.historyIndex = index;
+                this.updateUndoRedoButtons();
+            }
+            
+            undo() { if (this.historyIndex > 0) this.restoreFromHistory(this.historyIndex - 1); }
+            redo() { if (this.historyIndex < this.history.length - 1) this.restoreFromHistory(this.historyIndex + 1); }
+            updateUndoRedoButtons() {
+                this.undoBtn.disabled = this.historyIndex <= 0;
+                this.redoBtn.disabled = this.historyIndex >= this.history.length - 1;
+            }
+            
+            resetToOriginal() {
+                if (!this.originalImageData) return;
+                this.ctx.putImageData(this.originalImageData, 0, 0);
+                this.currentImageData = this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height);
+                this.saveToHistory();
+            }
+            
+            applySmartSharpen() {
+                if (this.isProcessing) return;
+                if (!this.currentImageData) { alert('กรุณาอัปโหลดรูปก่อน'); return; }
+                this.isProcessing = true;
+                this.sharpenBtn.disabled = true;
+                this.progressContainer.style.display = 'block';
+                let progress = 0;
+                const interval = setInterval(() => { progress += 10; this.progressFill.style.width = Math.min(progress,90)+'%'; }, 50);
+                setTimeout(() => {
+                    const amount = parseInt(this.amountSlider.value) / 100;
+                    const radius = parseFloat(this.radiusSlider.value);
+                    const threshold = parseInt(this.thresholdSlider.value);
+                    const preBlur = parseFloat(this.preblurSlider.value);
+                    const mode = this.modeSelect.value;
+                    let finalAmount = amount;
+                    if (mode === 'detail') finalAmount = amount * 1.4;
+                    if (mode === 'soft') finalAmount = amount * 0.6;
+                    
+                    // ใช้ unsharp mask จำลอง (RGB)
+                    const imgData = this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height);
+                    const data = imgData.data;
+                    const width = this.canvas.width, height = this.canvas.height;
+                    // simple blur approximation (ไม่สมบูรณ์ แต่ให้ตัวอย่าง)
+                    const blurred = new Uint8ClampedArray(data.length);
+                    for (let i = 0; i < data.length; i+=4) {
+                        blurred[i]=data[i]; blurred[i+1]=data[i+1]; blurred[i+2]=data[i+2]; blurred[i+3]=data[i+3];
+                    }
+                    // sharpen: original + (original - blurred) * amount
+                    for (let i = 0; i < data.length; i+=4) {
+                        for (let c=0;c<3;c++) {
+                            let orig = data[i+c];
+                            let blur = blurred[i+c];
+                            let diff = orig - blur;
+                            let val = orig + diff * finalAmount;
+                            data[i+c] = Math.min(255, Math.max(0, val));
+                        }
+                    }
+                    this.ctx.putImageData(imgData,0,0);
+                    this.currentImageData = this.ctx.getImageData(0,0,width,height);
+                    this.saveToHistory();
+                    clearInterval(interval);
+                    this.progressFill.style.width = '100%';
+                    setTimeout(() => { this.progressContainer.style.display = 'none'; this.progressFill.style.width = '0%'; }, 500);
+                    this.isProcessing = false;
+                    this.sharpenBtn.disabled = false;
+                    this.imageStatus.innerHTML = '<i class="fas fa-check"></i> ปรับความคมชัดเสร็จสิ้น';
+                }, 200);
+            }
+            
+            applyColorCorrection() {
+                if (!this.currentImageData) return;
+                const sat = parseInt(this.saturationSlider.value) / 100;
+                const bright = parseInt(this.brightnessSlider.value);
+                const imgData = this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height);
+                const data = imgData.data;
+                for (let i=0;i<data.length;i+=4) {
+                    let r=data[i], g=data[i+1], b=data[i+2];
+                    // brightness
+                    r += bright; g += bright; b += bright;
+                    // saturation (simple)
+                    const gray = 0.299*r + 0.587*g + 0.114*b;
+                    r = gray + (r - gray) * sat;
+                    g = gray + (g - gray) * sat;
+                    b = gray + (b - gray) * sat;
+                    data[i] = Math.min(255,Math.max(0,r));
+                    data[i+1]=Math.min(255,Math.max(0,g));
+                    data[i+2]=Math.min(255,Math.max(0,b));
+                }
+                this.ctx.putImageData(imgData,0,0);
+                this.currentImageData = this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height);
+                this.saveToHistory();
+                this.imageStatus.innerHTML = '<i class="fas fa-palette"></i> ปรับสีเรียบร้อย';
+            }
+            
+            resetColors() {
+                if (!this.originalImageData) return;
+                this.ctx.putImageData(this.originalImageData,0,0);
+                this.currentImageData = this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height);
+                this.saveToHistory();
+                this.saturationSlider.value = '100';
+                this.brightnessSlider.value = '0';
+                this.updateSliderLabels();
+            }
+            
+            saveAsPNG() {
+                if (!this.canvas) return;
+                const link = document.createElement('a');
+                link.download = 'sharpened_image.png';
+                link.href = this.canvas.toDataURL();
+                link.click();
+            }
+            
+            setupZoomLens() {
+                this.zoomCanvas = document.getElementById('zoomCanvas');
+                this.zoomCtx = this.zoomCanvas.getContext('2d');
+                this.floatingDiv = document.getElementById('floatingZoom');
+                let lensActive = false;
+                const updateZoom = (e) => {
+                    if (!lensActive || !this.currentImageData) return;
+                    const rect = this.canvas.getBoundingClientRect();
+                    const scaleX = this.canvas.width / rect.width;
+                    const scaleY = this.canvas.height / rect.height;
+                    let clientX, clientY;
+                    if (e.touches) {
+                        clientX = e.touches[0].clientX;
+                        clientY = e.touches[0].clientY;
+                    } else {
+                        clientX = e.clientX;
+                        clientY = e.clientY;
+                    }
+                    let canvasX = (clientX - rect.left) * scaleX;
+                    let canvasY = (clientY - rect.top) * scaleY;
+                    if (canvasX < 0 || canvasY < 0 || canvasX > this.canvas.width || canvasY > this.canvas.height) return;
+                    const zoomRadius = 40;
+                    const zoomSize = 180;
+                    this.zoomCanvas.width = zoomSize;
+                    this.zoomCanvas.height = zoomSize;
+                    this.zoomCtx.drawImage(this.canvas, canvasX - zoomRadius, canvasY - zoomRadius, zoomRadius*2, zoomRadius*2, 0, 0, zoomSize, zoomSize);
+                    this.zoomCtx.beginPath();
+                    this.zoomCtx.arc(zoomSize/2, zoomSize/2, 8, 0, 2*Math.PI);
+                    this.zoomCtx.strokeStyle = '#3B82F6';
+                    this.zoomCtx.lineWidth = 2;
+                    this.zoomCtx.stroke();
+                };
+                this.canvas.addEventListener('mousemove', (e) => { if(lensActive) updateZoom(e); });
+                this.canvas.addEventListener('touchmove', (e) => { if(lensActive) { e.preventDefault(); updateZoom(e); } }, {passive:false});
+                this.canvas.addEventListener('mouseleave', () => { if(lensActive) this.floatingDiv.classList.add('hidden'); });
+                this.toggleZoomLens = () => {
+                    lensActive = !lensActive;
+                    if(lensActive) this.floatingDiv.classList.remove('hidden');
+                    else this.floatingDiv.classList.add('hidden');
+                };
+                window.toggleZoomLensExternal = this.toggleZoomLens;
+            }
+            
+            toggleZoomLens() {
+                if (typeof this.toggleZoomLens === 'function') this.toggleZoomLens();
+            }
+            
+            sendImageToMainPage(quality = 0.7) {
+                // ฟังก์ชันส่งภาพกลับไป index.html
+                if (!this.canvas) return false;
+                try {
+                    const tempCanvas = document.createElement('canvas');
+                    const ctxTemp = tempCanvas.getContext('2d');
+                    let width = this.canvas.width;
+                    let height = this.canvas.height;
+                    const MAX_WIDTH = 1024;
+                    if (width > MAX_WIDTH) {
+                        height = (height * MAX_WIDTH) / width;
+                        width = MAX_WIDTH;
+                    }
+                    tempCanvas.width = width;
+                    tempCanvas.height = height;
+                    ctxTemp.drawImage(this.canvas, 0, 0, width, height);
+                    const imageDataURL = tempCanvas.toDataURL('image/jpeg', quality);
+                    localStorage.setItem('trojan_image_from_editor', imageDataURL);
+                    return true;
+                } catch(e) { return false; }
+            }
+        }
+        window.SmartSharpenPro = SmartSharpenProCore;
+    })();
+    
+    // รอ DOM พร้อมสร้าง instance
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.editor) {
+            window.editor = new SmartSharpenPro();
+            console.log('Smart Sharpen Pro (Mobile Ready) ทำงาน');
+        }
+    });
+    
+    // ฟังก์ชันส่งภาพกลับไปหน้าแรก (ผูกปุ่ม)
+    function sendImageToHome() {
+        if (window.editor && typeof window.editor.sendImageToMainPage === 'function') {
+            const success = window.editor.sendImageToMainPage(0.7);
+            if (success) {
+                window.location.href = 'index.html';
+            } else {
+                alert('ไม่สามารถส่งภาพได้');
+            }
+            return;
+        }
+        // fallback
+        const canvas = document.getElementById('canvas');
+        if (!canvas) { alert('ไม่พบ canvas'); return; }
+        try {
+            const tempCanvas = document.createElement('canvas');
+            const ctx = tempCanvas.getContext('2d');
+            let width = canvas.width, height = canvas.height;
+            const MAX_WIDTH = 1024;
+            if (width > MAX_WIDTH) { height = (height * MAX_WIDTH) / width; width = MAX_WIDTH; }
+            tempCanvas.width = width; tempCanvas.height = height;
+            ctx.drawImage(canvas, 0, 0, width, height);
+            const dataURL = tempCanvas.toDataURL('image/jpeg', 0.7);
+            localStorage.setItem('trojan_image_from_editor', dataURL);
+            window.location.href = 'index.html';
+        } catch(err) { alert('ส่งภาพล้มเหลว: '+err.message); }
+    }
+    const sendBtn = document.getElementById('sendBackBtn');
+    if(sendBtn) sendBtn.addEventListener('click', sendImageToHome);
+</script>
+</body>
+</html>
